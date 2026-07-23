@@ -31,13 +31,17 @@ public class AccountServiceImpl implements AccountService {
                 .userId(request.getUserId())
                 .accountNumber(generateAccountNumber())
                 .accountType(request.getAccountType())
-                .balance(request.getBalance())
+                .balance(request.getInitialBalance())
                 .status(AccountStatus.ACTIVE)
                 .lastTransactionAt(LocalDateTime.now())
                 .build();
 
         account = accountRepository.save(account);
-        return mapToResponse(account);
+        return AccountResponse.builder()
+                .accountId(account.getId())
+                .accountNumber(account.getAccountNumber())
+                .message("Account created successfully.")
+                .build();
     }
 
     @Override
@@ -64,10 +68,12 @@ public class AccountServiceImpl implements AccountService {
         }
 
         Account fromAccount = accountRepository.findById(request.getFromAccountId())
-                .orElseThrow(() -> new AccountNotFoundException("Account with ID " + request.getFromAccountId() + " not found."));
+                .orElseThrow(() -> new AccountNotFoundException(
+                        "Account with ID " + request.getFromAccountId() + " not found."));
 
         Account toAccount = accountRepository.findById(request.getToAccountId())
-                .orElseThrow(() -> new AccountNotFoundException("Account with ID " + request.getToAccountId() + " not found."));
+                .orElseThrow(() -> new AccountNotFoundException(
+                        "Account with ID " + request.getToAccountId() + " not found."));
 
         if (fromAccount.getStatus() == AccountStatus.INACTIVE) {
             throw new InactiveAccountException("Sender account is inactive.");

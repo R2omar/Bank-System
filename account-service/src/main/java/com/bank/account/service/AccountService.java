@@ -9,7 +9,10 @@ import java.util.UUID;
 
 public interface AccountService {
     AccountResponse createAccount(AccountRequest request);
+
     AccountResponse getAccount(UUID accountId);
+
     List<AccountResponse> getUserAccounts(UUID userId);
+
     void transfer(TransferRequest request);
 }

@@ -78,7 +78,7 @@ class AccountServiceImplTest {
         AccountRequest request = new AccountRequest();
         request.setUserId(UUID.randomUUID());
         request.setAccountType(AccountType.SAVINGS);
-        request.setBalance(new BigDecimal("200.00"));
+        request.setInitialBalance(new BigDecimal("200.00"));
 
         when(accountRepository.save(any(Account.class))).thenAnswer(i -> {
             Account acc = i.getArgument(0);
@@ -90,9 +90,8 @@ class AccountServiceImplTest {
 
         assertNotNull(response);
         assertNotNull(response.getAccountId());
-        assertEquals(AccountType.SAVINGS, response.getAccountType());
-        assertEquals(new BigDecimal("200.00"), response.getBalance());
-        assertEquals(AccountStatus.ACTIVE, response.getStatus());
+        assertEquals("Account created successfully.", response.getMessage());
+        assertNotNull(response.getAccountNumber());
         verify(accountRepository, times(1)).save(any(Account.class));
     }
 

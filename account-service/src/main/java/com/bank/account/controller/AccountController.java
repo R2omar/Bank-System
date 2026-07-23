@@ -3,6 +3,7 @@ package com.bank.account.controller;
 import com.bank.account.dto.AccountRequest;
 import com.bank.account.dto.AccountResponse;
 import com.bank.account.dto.TransferRequest;
+import com.bank.account.dto.TransferResponse;
 import com.bank.account.service.AccountService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -35,8 +36,8 @@ public class AccountController {
     }
 
     @PutMapping("/accounts/transfer")
-    public ResponseEntity<Void> transfer(@Valid @RequestBody TransferRequest request) {
+    public ResponseEntity<TransferResponse> transfer(@Valid @RequestBody TransferRequest request) {
         accountService.transfer(request);
-        return ResponseEntity.ok().build();
+        return ResponseEntity.ok(new TransferResponse("Account updated successfully."));
     }
 }

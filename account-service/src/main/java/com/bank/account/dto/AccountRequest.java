@@ -16,7 +16,7 @@ public class AccountRequest {
     @NotNull(message = "accountType is required")
     private AccountType accountType;
 
-    @NotNull(message = "balance is required")
+    @NotNull(message = "initialBalance is required")
     @PositiveOrZero(message = "initial balance cannot be negative")
-    private BigDecimal balance;
+    private BigDecimal initialBalance;
 }
