@@ -10,4 +10,5 @@ import java.util.UUID;
 @Repository
 public interface AccountRepository extends JpaRepository<Account, UUID> {
     List<Account> findByUserId(UUID userId);
+    List<Account> findByStatusAndLastTransactionAtBefore(com.bank.account.entity.AccountStatus status, java.time.LocalDateTime dateTime);
 }
