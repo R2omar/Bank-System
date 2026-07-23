@@ -25,24 +25,9 @@ public class TransactionServiceImpl implements TransactionService {
     private final AccountClient accountClient;
 
     @Override
-    @Transactional
     public TransactionStatusResponse initiateTransfer(InitiationRequest request) {
         if (request.getFromAccountId().equals(request.getToAccountId())) {
             throw new IllegalArgumentException("Invalid 'from' or 'to' account ID.");
-        }
-
-        UUID virtualBankAccountId = UUID.fromString("00000000-0000-0000-0000-000000000000");
-        if (!request.getFromAccountId().equals(virtualBankAccountId)) {
-            try {
-                AccountResponse fromAccount = accountClient.getAccount(request.getFromAccountId()).getBody();
-                if (fromAccount == null || fromAccount.getBalance().compareTo(request.getAmount()) < 0) {
-                    throw new IllegalArgumentException("Insufficient funds.");
-                }
-            } catch (IllegalArgumentException e) {
-                throw e;
-            } catch (Exception e) {
-                throw new IllegalArgumentException("Invalid 'from' or 'to' account ID.");
-            }
         }
 
         Transaction transaction = Transaction.builder()
@@ -64,13 +49,35 @@ public class TransactionServiceImpl implements TransactionService {
     }
 
     @Override
-    @Transactional
     public TransactionStatusResponse executeTransfer(ExecutionRequest request) {
         Transaction transaction = transactionRepository.findById(request.getTransactionId())
                 .orElseThrow(() -> new TransactionNotFoundException("Transaction not found."));
 
         if (transaction.getStatus() != TransactionStatus.INITIATED) {
             throw new IllegalArgumentException("Transaction is not in INITIATED state.");
+        }
+
+        UUID virtualBankAccountId = UUID.fromString("00000000-0000-0000-0000-000000000000");
+        if (!transaction.getFromAccountId().equals(virtualBankAccountId)) {
+            try {
+                AccountResponse fromAccount = accountClient.getAccount(transaction.getFromAccountId()).getBody();
+                if (fromAccount == null) {
+                    transaction.setStatus(TransactionStatus.FAILED);
+                    transactionRepository.save(transaction);
+                    throw new IllegalArgumentException("Invalid 'from' or 'to' account ID.");
+                }
+                if (fromAccount.getBalance().compareTo(transaction.getAmount()) < 0) {
+                    transaction.setStatus(TransactionStatus.FAILED);
+                    transactionRepository.save(transaction);
+                    throw new IllegalArgumentException("Insufficient funds.");
+                }
+            } catch (IllegalArgumentException e) {
+                throw e;
+            } catch (Exception e) {
+                transaction.setStatus(TransactionStatus.FAILED);
+                transactionRepository.save(transaction);
+                throw new IllegalArgumentException("Invalid 'from' or 'to' account ID.");
+            }
         }
 
         try {
@@ -85,7 +92,9 @@ public class TransactionServiceImpl implements TransactionService {
         } catch (Exception e) {
             transaction.setStatus(TransactionStatus.FAILED);
             transactionRepository.save(transaction);
-            throw new IllegalArgumentException("Invalid 'from' or 'to' account ID."); // or insufficient funds, based on feign response
+            String message = e.getMessage() != null && e.getMessage().contains("Insufficient") ? "Insufficient funds."
+                    : "Invalid 'from' or 'to' account ID.";
+            throw new IllegalArgumentException(message);
         }
 
         transaction = transactionRepository.save(transaction);
@@ -106,8 +115,10 @@ public class TransactionServiceImpl implements TransactionService {
 
         return transactions.stream().map(t -> {
             String deliveryStatus = "SENT";
+            t.setAmount(t.getAmount().negate());
             if (t.getToAccountId().equals(accountId)) {
                 deliveryStatus = "DELIVERED";
+                t.setAmount(t.getAmount().negate());
             }
             return TransactionHistoryResponse.builder()
                     .transactionId(t.getId())
@@ -129,7 +140,8 @@ public class TransactionServiceImpl implements TransactionService {
             return;
         }
 
-        UUID virtualBankAccountId = UUID.fromString("00000000-0000-0000-0000-000000000000"); // Example ID for virtual bank
+        UUID virtualBankAccountId = UUID.fromString("00000000-0000-0000-0000-000000000000"); // Example ID for virtual
+                                                                                             // bank
 
         for (ActiveSavingsAccountResponse account : savingsAccounts) {
             BigDecimal interest = account.getBalance().multiply(new BigDecimal("0.05")); // 5% interest
