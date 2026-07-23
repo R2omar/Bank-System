@@ -67,33 +67,38 @@ public class AccountServiceImpl implements AccountService {
             throw new IllegalArgumentException("Sender and receiver accounts must be different.");
         }
 
-        Account fromAccount = accountRepository.findById(request.getFromAccountId())
-                .orElseThrow(() -> new AccountNotFoundException(
-                        "Account with ID " + request.getFromAccountId() + " not found."));
+        UUID virtualBankAccountId = UUID.fromString("00000000-0000-0000-0000-000000000000");
+        boolean isSystemDeposit = request.getFromAccountId().equals(virtualBankAccountId);
+
+        Account fromAccount = null;
+        if (!isSystemDeposit) {
+            fromAccount = accountRepository.findById(request.getFromAccountId())
+                    .orElseThrow(() -> new AccountNotFoundException(
+                            "Account with ID " + request.getFromAccountId() + " not found."));
+            if (fromAccount.getStatus() == AccountStatus.INACTIVE) {
+                throw new InactiveAccountException("Sender account is inactive.");
+            }
+            if (fromAccount.getBalance().compareTo(request.getAmount()) < 0) {
+                throw new InsufficientFundsException("Insufficient funds.");
+            }
+        }
 
         Account toAccount = accountRepository.findById(request.getToAccountId())
                 .orElseThrow(() -> new AccountNotFoundException(
                         "Account with ID " + request.getToAccountId() + " not found."));
 
-        if (fromAccount.getStatus() == AccountStatus.INACTIVE) {
-            throw new InactiveAccountException("Sender account is inactive.");
-        }
         if (toAccount.getStatus() == AccountStatus.INACTIVE) {
             throw new InactiveAccountException("Receiver account is inactive.");
         }
 
-        if (fromAccount.getBalance().compareTo(request.getAmount()) < 0) {
-            throw new InsufficientFundsException("Insufficient funds.");
+        if (!isSystemDeposit) {
+            fromAccount.setBalance(fromAccount.getBalance().subtract(request.getAmount()));
+            fromAccount.setLastTransactionAt(LocalDateTime.now());
+            accountRepository.save(fromAccount);
         }
 
-        fromAccount.setBalance(fromAccount.getBalance().subtract(request.getAmount()));
         toAccount.setBalance(toAccount.getBalance().add(request.getAmount()));
-
-        LocalDateTime now = LocalDateTime.now();
-        fromAccount.setLastTransactionAt(now);
-        toAccount.setLastTransactionAt(now);
-
-        accountRepository.save(fromAccount);
+        toAccount.setLastTransactionAt(LocalDateTime.now());
         accountRepository.save(toAccount);
     }
 
