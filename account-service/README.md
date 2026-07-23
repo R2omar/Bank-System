@@ -44,7 +44,7 @@ Alternatively, you can run the compiled `.jar` file:
 java -jar target/account-service-0.0.1-SNAPSHOT.jar
 ```
 
-The service will start by default on `http://localhost:8080`.
+The service will start by default on `http://localhost:8081`.
 
 ## How to Run Tests
 
