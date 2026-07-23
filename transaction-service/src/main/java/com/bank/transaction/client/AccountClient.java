@@ -15,4 +15,7 @@ public interface AccountClient {
 
     @GetMapping("/accounts/active-savings")
     ResponseEntity<java.util.List<com.bank.transaction.dto.ActiveSavingsAccountResponse>> getActiveSavingsAccounts();
+
+    @GetMapping("/accounts/{accountId}")
+    ResponseEntity<com.bank.transaction.dto.AccountResponse> getAccount(@org.springframework.web.bind.annotation.PathVariable("accountId") java.util.UUID accountId);
 }

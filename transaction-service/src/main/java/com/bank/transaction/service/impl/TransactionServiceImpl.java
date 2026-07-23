@@ -31,6 +31,20 @@ public class TransactionServiceImpl implements TransactionService {
             throw new IllegalArgumentException("Invalid 'from' or 'to' account ID.");
         }
 
+        UUID virtualBankAccountId = UUID.fromString("00000000-0000-0000-0000-000000000000");
+        if (!request.getFromAccountId().equals(virtualBankAccountId)) {
+            try {
+                AccountResponse fromAccount = accountClient.getAccount(request.getFromAccountId()).getBody();
+                if (fromAccount == null || fromAccount.getBalance().compareTo(request.getAmount()) < 0) {
+                    throw new IllegalArgumentException("Insufficient funds.");
+                }
+            } catch (IllegalArgumentException e) {
+                throw e;
+            } catch (Exception e) {
+                throw new IllegalArgumentException("Invalid 'from' or 'to' account ID.");
+            }
+        }
+
         Transaction transaction = Transaction.builder()
                 .fromAccountId(request.getFromAccountId())
                 .toAccountId(request.getToAccountId())
