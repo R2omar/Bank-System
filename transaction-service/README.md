@@ -28,7 +28,7 @@ By default, it connects to:
 ## Service Dependencies
 
 This service communicates with the **Account Service** to execute transfers and fetch active savings accounts for interest payouts. 
-By default, the `Account Service` is expected to be running at `http://localhost:8080`.
+By default, the `Account Service` is expected to be running at `http://localhost:8081`.
 
 ## How to Build
 
@@ -54,7 +54,7 @@ Alternatively, you can run the compiled `.jar` file:
 java -jar target/transaction-service-0.0.1-SNAPSHOT.jar
 ```
 
-The service will start by default on `http://localhost:8081` to avoid conflicting with the Account Service.
+The service will start by default on `http://localhost:8082` to avoid conflicting with the Account Service.
 
 ## Endpoints
 
