@@ -157,7 +157,6 @@ class AccountServiceImplTest {
         request.setAmount(new BigDecimal("2000.00"));
 
         when(accountRepository.findById(activeAccount1.getId())).thenReturn(Optional.of(activeAccount1));
-        when(accountRepository.findById(activeAccount2.getId())).thenReturn(Optional.of(activeAccount2));
 
         assertThrows(InsufficientFundsException.class, () -> accountService.transfer(request));
     }
@@ -170,7 +169,6 @@ class AccountServiceImplTest {
         request.setAmount(new BigDecimal("50.00"));
 
         when(accountRepository.findById(inactiveAccount.getId())).thenReturn(Optional.of(inactiveAccount));
-        when(accountRepository.findById(activeAccount2.getId())).thenReturn(Optional.of(activeAccount2));
 
         assertThrows(InactiveAccountException.class, () -> accountService.transfer(request));
     }
