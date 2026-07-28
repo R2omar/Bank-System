@@ -9,10 +9,8 @@ import java.util.UUID;
 @Data
 @Builder
 @AllArgsConstructor
-public class UserProfileResponse {
+public class RegisterResponse {
     private UUID userId;
     private String username;
-    private String email;
-    private String firstName;
-    private String lastName;
+    private String message;
 }

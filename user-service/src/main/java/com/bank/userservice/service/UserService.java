@@ -6,11 +6,12 @@ import com.bank.userservice.exception.InvalidCredentialsException;
 import com.bank.userservice.exception.UserAlreadyExistsException;
 import com.bank.userservice.exception.UserNotFoundException;
 import com.bank.userservice.repository.UserRepository;
-import com.bank.userservice.security.JwtUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
@@ -18,61 +19,58 @@ public class UserService {
 
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
-    private final JwtUtil jwtUtil;
 
     @Transactional
-    public UserProfileResponse register(RegisterRequest request) {
+    public RegisterResponse register(RegisterRequest request) {
         if (userRepository.existsByUsername(request.getUsername())) {
-            throw new UserAlreadyExistsException("Username already taken: " + request.getUsername());
+            throw new UserAlreadyExistsException("Username or email already exists.");
         }
         if (userRepository.existsByEmail(request.getEmail())) {
-            throw new UserAlreadyExistsException("Email already registered: " + request.getEmail());
+            throw new UserAlreadyExistsException("Username or email already exists.");
         }
 
         User user = User.builder()
-                .fullName(request.getFullName())
-                .email(request.getEmail())
                 .username(request.getUsername())
                 .password(passwordEncoder.encode(request.getPassword()))
-                .phone(request.getPhone())
+                .email(request.getEmail())
+                .firstName(request.getFirstName())
+                .lastName(request.getLastName())
                 .build();
 
         User saved = userRepository.save(user);
-        return toProfileResponse(saved);
-    }
 
-    public AuthResponse login(LoginRequest request) {
-        User user = userRepository.findByUsername(request.getUsername())
-                .orElseThrow(() -> new InvalidCredentialsException("Invalid username or password"));
-
-        if (!passwordEncoder.matches(request.getPassword(), user.getPassword())) {
-            throw new InvalidCredentialsException("Invalid username or password");
-        }
-
-        String token = jwtUtil.generateToken(user.getId(), user.getUsername(), user.getRole().name());
-
-        return AuthResponse.builder()
-                .token(token)
-                .userId(user.getId())
-                .username(user.getUsername())
-                .role(user.getRole().name())
+        return RegisterResponse.builder()
+                .userId(saved.getId())
+                .username(saved.getUsername())
+                .message("User registered successfully.")
                 .build();
     }
 
-    public UserProfileResponse getProfile(Long userId) {
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new UserNotFoundException("User not found with id: " + userId));
-        return toProfileResponse(user);
+    public LoginResponse login(LoginRequest request) {
+        User user = userRepository.findByUsername(request.getUsername())
+                .orElseThrow(() -> new InvalidCredentialsException("Invalid username or password."));
+
+        if (!passwordEncoder.matches(request.getPassword(), user.getPassword())) {
+            throw new InvalidCredentialsException("Invalid username or password.");
+        }
+
+        return LoginResponse.builder()
+                .userId(user.getId())
+                .username(user.getUsername())
+                .build();
     }
 
-    private UserProfileResponse toProfileResponse(User user) {
+    public UserProfileResponse getProfile(UUID userId) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new UserNotFoundException(
+                        "User with ID " + userId + " not found."));
+
         return UserProfileResponse.builder()
-                .id(user.getId())
-                .fullName(user.getFullName())
-                .email(user.getEmail())
+                .userId(user.getId())
                 .username(user.getUsername())
-                .phone(user.getPhone())
-                .createdAt(user.getCreatedAt())
+                .email(user.getEmail())
+                .firstName(user.getFirstName())
+                .lastName(user.getLastName())
                 .build();
     }
 }
