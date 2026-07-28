@@ -1,0 +1,16 @@
+spring:
+  application:
+    name: bff-service
+
+server:
+    port: 8084
+
+services:
+  user:
+    url: http://localhost:8081
+
+  account:
+    url: http://localhost:8082
+
+  transaction:
+    url: http://localhost:8083
