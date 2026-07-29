@@ -2,17 +2,20 @@ package com.bank.account.service;
 
 import com.bank.account.dto.AccountRequest;
 import com.bank.account.dto.AccountResponse;
+import com.bank.account.dto.LogMessage;
 import com.bank.account.dto.TransferRequest;
 import com.bank.account.entity.Account;
 import com.bank.account.entity.AccountStatus;
 import com.bank.account.exception.AccountNotFoundException;
 import com.bank.account.exception.InactiveAccountException;
 import com.bank.account.exception.InsufficientFundsException;
+import com.bank.account.producer.KafkaProducerService;
 import com.bank.account.repository.AccountRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.Instant;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;

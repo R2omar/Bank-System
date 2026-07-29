@@ -1,0 +1,18 @@
+version: "3.9"
+
+services:
+  logging_db:
+    image: postgres:15-alpine
+    container_name: logging_db
+    restart: always
+    ports:
+      - "5436:5432"
+    environment:
+      POSTGRES_DB: logging_db
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    volumes:
+      - logging_db_data:/var/lib/postgresql/data
+
+volumes:
+  logging_db_data:

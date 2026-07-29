@@ -2,6 +2,7 @@ package com.bank.bff.controller;
 
 import com.bank.bff.dto.DashboardResponse;
 import com.bank.bff.service.DashboardService;
+import com.bank.bff.service.LogService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -9,6 +10,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import reactor.core.publisher.Mono;
 
+import java.util.HashMap;
+import java.util.Map;
 import java.util.UUID;
 
 @RestController
@@ -17,9 +20,17 @@ import java.util.UUID;
 public class DashboardController {
 
     private final DashboardService dashboardService;
+    private final LogService logService;
 
     @GetMapping("/dashboard/{userId}")
     public Mono<DashboardResponse> getDashboard(@PathVariable UUID userId) {
-        return dashboardService.getDashboard(userId);
+
+        Map<String, Object> request = new HashMap<>();
+        request.put("userId", userId);
+
+        logService.logRequest(request);
+
+        return dashboardService.getDashboard(userId)
+                .doOnSuccess(logService::logResponse);
     }
 }
