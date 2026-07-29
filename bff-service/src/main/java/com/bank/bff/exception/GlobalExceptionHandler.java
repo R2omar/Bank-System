@@ -1,5 +1,6 @@
 package com.bank.bff.exception;
 
+import com.bank.bff.service.LogService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -11,6 +12,12 @@ import java.util.concurrent.TimeoutException;
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
+    private final LogService logService;
+
+    public GlobalExceptionHandler(LogService logService) {
+        this.logService = logService;
+    }
+
     @ExceptionHandler(ResourceNotFoundException.class)
     public ResponseEntity<ErrorResponse> handleNotFound(ResourceNotFoundException ex) {
 
@@ -20,6 +27,8 @@ public class GlobalExceptionHandler {
                 .error(HttpStatus.NOT_FOUND.getReasonPhrase())
                 .message(ex.getMessage())
                 .build();
+
+        logService.logResponse(response);
 
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
     }
@@ -34,6 +43,8 @@ public class GlobalExceptionHandler {
                 .message(ex.getMessage())
                 .build();
 
+        logService.logResponse(response);
+
         return ResponseEntity.status(HttpStatus.BAD_GATEWAY).body(response);
     }
 
@@ -47,6 +58,8 @@ public class GlobalExceptionHandler {
                 .message("A downstream service did not respond in time.")
                 .build();
 
+        logService.logResponse(response);
+
         return ResponseEntity.status(HttpStatus.BAD_GATEWAY).body(response);
     }
 
@@ -59,6 +72,8 @@ public class GlobalExceptionHandler {
                 .error(HttpStatus.INTERNAL_SERVER_ERROR.getReasonPhrase())
                 .message(ex.getMessage())
                 .build();
+
+        logService.logResponse(response);
 
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
     }

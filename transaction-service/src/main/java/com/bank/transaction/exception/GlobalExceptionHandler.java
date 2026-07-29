@@ -1,6 +1,7 @@
 package com.bank.transaction.exception;
 
 import com.bank.transaction.dto.ErrorResponse;
+import com.bank.transaction.service.LogService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ControllerAdvice;
@@ -8,6 +9,11 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 
 @ControllerAdvice
 public class GlobalExceptionHandler {
+    private final LogService logService;
+
+    public GlobalExceptionHandler(LogService logService) {
+        this.logService = logService;
+    }
 
     @ExceptionHandler(TransactionNotFoundException.class)
     public ResponseEntity<ErrorResponse> handleTransactionNotFoundException(TransactionNotFoundException ex) {
@@ -16,6 +22,7 @@ public class GlobalExceptionHandler {
                 .error("Not Found")
                 .message(ex.getMessage())
                 .build();
+        logService.logResponse(errorResponse);
         return new ResponseEntity<>(errorResponse, HttpStatus.NOT_FOUND);
     }
 
@@ -26,6 +33,7 @@ public class GlobalExceptionHandler {
                 .error("Bad Request")
                 .message(ex.getMessage())
                 .build();
+        logService.logResponse(errorResponse);
         return new ResponseEntity<>(errorResponse, HttpStatus.BAD_REQUEST);
     }
     
@@ -36,6 +44,7 @@ public class GlobalExceptionHandler {
                 .error("Bad Request")
                 .message(ex.getMessage())
                 .build();
+        logService.logResponse(errorResponse);
         return new ResponseEntity<>(errorResponse, HttpStatus.BAD_REQUEST);
     }
 
@@ -46,6 +55,7 @@ public class GlobalExceptionHandler {
                 .error("Internal Server Error")
                 .message("An unexpected error occurred.")
                 .build();
+        logService.logResponse(errorResponse);
         return new ResponseEntity<>(errorResponse, HttpStatus.INTERNAL_SERVER_ERROR);
     }
 }

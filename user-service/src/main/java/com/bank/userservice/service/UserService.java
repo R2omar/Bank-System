@@ -23,10 +23,10 @@ public class UserService {
     @Transactional
     public RegisterResponse register(RegisterRequest request) {
         if (userRepository.existsByUsername(request.getUsername())) {
-            throw new UserAlreadyExistsException("Username or email already exists.");
+            throw new UserAlreadyExistsException("Username already exists.");
         }
         if (userRepository.existsByEmail(request.getEmail())) {
-            throw new UserAlreadyExistsException("Username or email already exists.");
+            throw new UserAlreadyExistsException("email already exists.");
         }
 
         User user = User.builder()
