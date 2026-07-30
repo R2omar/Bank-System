@@ -1,0 +1,153 @@
+{
+  "info": {
+    "name": "Transaction Service",
+    "_postman_id": "transaction-service-collection",
+    "description": "Virtual Bank - Transaction Service (port 8083)",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "baseUrl",       "value": "http://localhost:8083" },
+    { "key": "fromAccountId", "value": "b4c3d2b1-a098-7654-3210-fedcba987654" },
+    { "key": "toAccountId",   "value": "c5d4e3f2-a1b0-9876-5432-10fedcba9876" },
+    { "key": "transactionId", "value": "" }
+  ],
+  "item": [
+    {
+      "name": "Initiate Transfer",
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "url": { "raw": "{{baseUrl}}/transactions/transfer/initiation", "host": ["{{baseUrl}}"], "path": ["transactions","transfer","initiation"] },
+        "body": { "mode": "raw", "raw": "{\n  \"fromAccountId\": \"{{fromAccountId}}\",\n  \"toAccountId\": \"{{toAccountId}}\",\n  \"amount\": 30.00,\n  \"description\": \"Transfer to checking account\"\n}" }
+      },
+      "event": [{ "listen": "test", "script": { "exec": ["pm.test('200 OK', () => pm.response.to.have.status(200));", "const j = pm.response.json(); pm.test('has transactionId', () => pm.expect(j).to.have.property('transactionId'));", "pm.test('status is Initiated', () => pm.expect(j.status).to.include('nitiat'));", "if(j.transactionId) pm.collectionVariables.set('transactionId', j.transactionId);"] } }]
+    },
+    {
+      "name": "Initiate Transfer - with no description",
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "url": { "raw": "{{baseUrl}}/transactions/transfer/initiation", "host": ["{{baseUrl}}"], "path": ["transactions","transfer","initiation"] },
+        "body": { "mode": "raw", "raw": "{\n  \"fromAccountId\": \"{{fromAccountId}}\",\n  \"toAccountId\": \"{{toAccountId}}\",\n  \"amount\": 10.00\n}" }
+      },
+      "event": [{ "listen": "test", "script": { "exec": ["pm.test('200 OK', () => pm.response.to.have.status(200));", "pm.test('has transactionId', () => pm.expect(pm.response.json()).to.have.property('transactionId'));"] } }]
+    },
+    {
+      "name": "Initiate Transfer - Invalid fromAccountId",
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "url": { "raw": "{{baseUrl}}/transactions/transfer/initiation", "host": ["{{baseUrl}}"], "path": ["transactions","transfer","initiation"] },
+        "body": { "mode": "raw", "raw": "{\n  \"fromAccountId\": \"00000000-0000-0000-0000-000a00000000\",\n  \"toAccountId\": \"{{toAccountId}}\",\n  \"amount\": 30.00,\n  \"description\": \"Invalid from account\"\n}" }
+      },
+      "event": [{ "listen": "test", "script": { "exec": ["pm.test('400 Bad Request', () => pm.response.to.have.status(400));"] } }]
+    },
+    {
+      "name": "Initiate Transfer - Invalid toAccountId",
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "url": { "raw": "{{baseUrl}}/transactions/transfer/initiation", "host": ["{{baseUrl}}"], "path": ["transactions","transfer","initiation"] },
+        "body": { "mode": "raw", "raw": "{\n  \"fromAccountId\": \"{{fromAccountId}}\",\n  \"toAccountId\": \"00000000-0000-0000-0000-000a00000000\",\n  \"amount\": 30.00,\n  \"description\": \"Invalid to account\"\n}" }
+      },
+      "event": [{ "listen": "test", "script": { "exec": ["pm.test('400 Bad Request', () => pm.response.to.have.status(400));"] } }]
+    },
+    {
+      "name": "Initiate Transfer - Insufficient funds",
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "url": { "raw": "{{baseUrl}}/transactions/transfer/initiation", "host": ["{{baseUrl}}"], "path": ["transactions","transfer","initiation"] },
+        "body": { "mode": "raw", "raw": "{\n  \"fromAccountId\": \"{{fromAccountId}}\",\n  \"toAccountId\": \"{{toAccountId}}\",\n  \"amount\": 9999999.99,\n  \"description\": \"Exceeds balance\"\n}" }
+      },
+      "event": [{ "listen": "test", "script": { "exec": ["pm.test('400 Bad Request', () => pm.response.to.have.status(400));"] } }]
+    },
+    {
+      "name": "Initiate Transfer - Zero amount",
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "url": { "raw": "{{baseUrl}}/transactions/transfer/initiation", "host": ["{{baseUrl}}"], "path": ["transactions","transfer","initiation"] },
+        "body": { "mode": "raw", "raw": "{\n  \"fromAccountId\": \"{{fromAccountId}}\",\n  \"toAccountId\": \"{{toAccountId}}\",\n  \"amount\": 0,\n  \"description\": \"Zero amount\"\n}" }
+      },
+      "event": [{ "listen": "test", "script": { "exec": ["pm.test('400 Bad Request', () => pm.response.to.have.status(400));"] } }]
+    },
+    {
+      "name": "Initiate Transfer - Negative amount",
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "url": { "raw": "{{baseUrl}}/transactions/transfer/initiation", "host": ["{{baseUrl}}"], "path": ["transactions","transfer","initiation"] },
+        "body": { "mode": "raw", "raw": "{\n  \"fromAccountId\": \"{{fromAccountId}}\",\n  \"toAccountId\": \"{{toAccountId}}\",\n  \"amount\": -100.00,\n  \"description\": \"Negative amount\"\n}" }
+      },
+      "event": [{ "listen": "test", "script": { "exec": ["pm.test('400 Bad Request', () => pm.response.to.have.status(400));"] } }]
+    },
+    {
+      "name": "Initiate Transfer - Missing fromAccountId",
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "url": { "raw": "{{baseUrl}}/transactions/transfer/initiation", "host": ["{{baseUrl}}"], "path": ["transactions","transfer","initiation"] },
+        "body": { "mode": "raw", "raw": "{\n  \"toAccountId\": \"{{toAccountId}}\",\n  \"amount\": 30.00\n}" }
+      },
+      "event": [{ "listen": "test", "script": { "exec": ["pm.test('400 Bad Request', () => pm.response.to.have.status(400));"] } }]
+    },
+    {
+      "name": "Execute Transfer",
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "url": { "raw": "{{baseUrl}}/transactions/transfer/execution", "host": ["{{baseUrl}}"], "path": ["transactions","transfer","execution"] },
+        "body": { "mode": "raw", "raw": "{\n  \"transactionId\": \"{{transactionId}}\"\n}" }
+      },
+      "event": [{ "listen": "test", "script": { "exec": ["pm.test('200 OK', () => pm.response.to.have.status(200));", "const j = pm.response.json(); pm.test('has transactionId', () => pm.expect(j).to.have.property('transactionId'));", "pm.test('status is Success or Failed', () => pm.expect(['Success','Failed']).to.include(j.status));"] } }]
+    },
+    {
+      "name": "Execute Transfer - Non-existent transactionId",
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "url": { "raw": "{{baseUrl}}/transactions/transfer/execution", "host": ["{{baseUrl}}"], "path": ["transactions","transfer","execution"] },
+        "body": { "mode": "raw", "raw": "{\n  \"transactionId\": \"00000000-0000-0000-0000-000a00000000\"\n}" }
+      },
+      "event": [{ "listen": "test", "script": { "exec": ["pm.test('4xx error', () => pm.expect(pm.response.code).to.be.within(400, 499));"] } }]
+    },
+    {
+      "name": "Execute Transfer - Missing transactionId",
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "url": { "raw": "{{baseUrl}}/transactions/transfer/execution", "host": ["{{baseUrl}}"], "path": ["transactions","transfer","execution"] },
+        "body": { "mode": "raw", "raw": "{}" }
+      },
+      "event": [{ "listen": "test", "script": { "exec": ["pm.test('400 Bad Request', () => pm.response.to.have.status(400));"] } }]
+    },
+    {
+      "name": "Get Account Transactions",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": { "raw": "{{baseUrl}}/accounts/{{fromAccountId}}/transactions", "host": ["{{baseUrl}}"], "path": ["accounts","{{fromAccountId}}","transactions"] }
+      },
+      "event": [{ "listen": "test", "script": { "exec": ["pm.test('200 OK', () => pm.response.to.have.status(200));", "pm.test('response is array', () => pm.expect(pm.response.json()).to.be.an('array'));"] } }]
+    },
+    {
+      "name": "Get Account Transactions - No transactions",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": { "raw": "{{baseUrl}}/accounts/00000000-0000-0000-0000-000a00000000/transactions", "host": ["{{baseUrl}}"], "path": ["accounts","00000000-0000-0000-0000-000a00000000","transactions"] }
+      },
+      "event": [{ "listen": "test", "script": { "exec": ["pm.test('404 Not Found', () => pm.response.to.have.status(404));"] } }]
+    },
+    {
+      "name": "Get Account Transactions - Malformed UUID",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": { "raw": "{{baseUrl}}/accounts/not-a-uuid/transactions", "host": ["{{baseUrl}}"], "path": ["accounts","not-a-uuid","transactions"] }
+      },
+      "event": [{ "listen": "test", "script": { "exec": ["pm.test('4xx error', () => pm.expect(pm.response.code).to.be.within(400, 499));"] } }]
+    }
+  ]
+}

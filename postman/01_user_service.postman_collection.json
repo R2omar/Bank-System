@@ -1,0 +1,131 @@
+{
+  "info": {
+    "name": "User Service",
+    "_postman_id": "user-service-collection",
+    "description": "Virtual Bank - User Service (port 8081)",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "baseUrl", "value": "http://localhost:8081" },
+    { "key": "userId",  "value": "a1b2c3d4-e5f6-7890-1234-567890abcdef" }
+  ],
+  "item": [
+    {
+      "name": "Register User",
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "url": { "raw": "{{baseUrl}}/users/register", "host": ["{{baseUrl}}"], "path": ["users","register"] },
+        "body": { "mode": "raw", "raw": "{\n  \"username\": \"john.doe\",\n  \"password\": \"securePassword123\",\n  \"email\": \"john.doe@example.com\",\n  \"firstName\": \"John\",\n  \"lastName\": \"Doe\"\n}" }
+      },
+      "event": [{ "listen": "test", "script": { "exec": ["pm.test('201 Created', () => pm.response.to.have.status(201));", "const j = pm.response.json(); pm.test('has userId', () => pm.expect(j).to.have.property('userId'));", "if(pm.response.code===201) pm.collectionVariables.set('userId', j.userId);"] } }]
+    },
+    {
+      "name": "Register User - Missing username",
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "url": { "raw": "{{baseUrl}}/users/register", "host": ["{{baseUrl}}"], "path": ["users","register"] },
+        "body": { "mode": "raw", "raw": "{\n  \"password\": \"securePassword123\",\n  \"email\": \"a@example.com\",\n  \"firstName\": \"A\",\n  \"lastName\": \"B\"\n}" }
+      },
+      "event": [{ "listen": "test", "script": { "exec": ["pm.test('400 Bad Request', () => pm.response.to.have.status(400));"] } }]
+    },
+    {
+      "name": "Register User - Invalid email",
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "url": { "raw": "{{baseUrl}}/users/register", "host": ["{{baseUrl}}"], "path": ["users","register"] },
+        "body": { "mode": "raw", "raw": "{\n  \"username\": \"newuser99\",\n  \"password\": \"securePassword123\",\n  \"email\": \"not-an-email\",\n  \"firstName\": \"New\",\n  \"lastName\": \"User\"\n}" }
+      },
+      "event": [{ "listen": "test", "script": { "exec": ["pm.test('400 Bad Request', () => pm.response.to.have.status(400));"] } }]
+    },
+    {
+      "name": "Register User - Username too short",
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "url": { "raw": "{{baseUrl}}/users/register", "host": ["{{baseUrl}}"], "path": ["users","register"] },
+        "body": { "mode": "raw", "raw": "{\n  \"username\": \"ab\",\n  \"password\": \"securePassword123\",\n  \"email\": \"ab@example.com\",\n  \"firstName\": \"Ab\",\n  \"lastName\": \"Cd\"\n}" }
+      },
+      "event": [{ "listen": "test", "script": { "exec": ["pm.test('400 Bad Request', () => pm.response.to.have.status(400));"] } }]
+    },
+    {
+      "name": "Register User - Password too short",
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "url": { "raw": "{{baseUrl}}/users/register", "host": ["{{baseUrl}}"], "path": ["users","register"] },
+        "body": { "mode": "raw", "raw": "{\n  \"username\": \"validuser\",\n  \"password\": \"short\",\n  \"email\": \"v@example.com\",\n  \"firstName\": \"V\",\n  \"lastName\": \"U\"\n}" }
+      },
+      "event": [{ "listen": "test", "script": { "exec": ["pm.test('400 Bad Request', () => pm.response.to.have.status(400));"] } }]
+    },
+    {
+      "name": "Login",
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "url": { "raw": "{{baseUrl}}/users/login", "host": ["{{baseUrl}}"], "path": ["users","login"] },
+        "body": { "mode": "raw", "raw": "{\n  \"username\": \"john.doe\",\n  \"password\": \"securePassword123\"\n}" }
+      },
+      "event": [{ "listen": "test", "script": { "exec": ["pm.test('200 OK', () => pm.response.to.have.status(200));", "const j = pm.response.json(); pm.test('has userId', () => pm.expect(j).to.have.property('userId'));", "if(pm.response.code===200) pm.collectionVariables.set('userId', j.userId);"] } }]
+    },
+    {
+      "name": "Login - Wrong password",
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "url": { "raw": "{{baseUrl}}/users/login", "host": ["{{baseUrl}}"], "path": ["users","login"] },
+        "body": { "mode": "raw", "raw": "{\n  \"username\": \"john.doe\",\n  \"password\": \"wrongPassword!\"\n}" }
+      },
+      "event": [{ "listen": "test", "script": { "exec": ["pm.test('401 Unauthorized', () => pm.response.to.have.status(401));"] } }]
+    },
+    {
+      "name": "Login - Non-existent user",
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "url": { "raw": "{{baseUrl}}/users/login", "host": ["{{baseUrl}}"], "path": ["users","login"] },
+        "body": { "mode": "raw", "raw": "{\n  \"username\": \"ghost.user\",\n  \"password\": \"somePassword123\"\n}" }
+      },
+      "event": [{ "listen": "test", "script": { "exec": ["pm.test('401 Unauthorized', () => pm.response.to.have.status(401));"] } }]
+    },
+    {
+      "name": "Login - Missing password",
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "url": { "raw": "{{baseUrl}}/users/login", "host": ["{{baseUrl}}"], "path": ["users","login"] },
+        "body": { "mode": "raw", "raw": "{\n  \"username\": \"john.doe\"\n}" }
+      },
+      "event": [{ "listen": "test", "script": { "exec": ["pm.test('400 Bad Request', () => pm.response.to.have.status(400));"] } }]
+    },
+    {
+      "name": "User Profile - Success",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": { "raw": "{{baseUrl}}/users/{{userId}}/profile", "host": ["{{baseUrl}}"], "path": ["users","{{userId}}","profile"] }
+      },
+      "event": [{ "listen": "test", "script": { "exec": ["pm.test('200 OK', () => pm.response.to.have.status(200));", "const j = pm.response.json(); pm.test('has profile fields', () => { pm.expect(j).to.have.property('userId'); pm.expect(j).to.have.property('email'); pm.expect(j).to.have.property('firstName'); });"] } }]
+    },
+    {
+      "name": "User Profile - Not Found",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": { "raw": "{{baseUrl}}/users/00000000-0000-0000-0000-000a00000000/profile", "host": ["{{baseUrl}}"], "path": ["users","00000000-0000-0000-0000-000a00000000","profile"] }
+      },
+      "event": [{ "listen": "test", "script": { "exec": ["pm.test('404 Not Found', () => pm.response.to.have.status(404));"] } }]
+    },
+    {
+      "name": "User Profile - Malformed UUID",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": { "raw": "{{baseUrl}}/users/not-a-valid-uuid/profile", "host": ["{{baseUrl}}"], "path": ["users","not-a-valid-uuid","profile"] }
+      },
+      "event": [{ "listen": "test", "script": { "exec": ["pm.test('4xx error', () => pm.expect(pm.response.code).to.be.within(400, 499));"] } }]
+    }
+  ]
+}
