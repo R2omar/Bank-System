@@ -6,7 +6,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.math.BigDecimal;
-import java.time.Instant;
+import java.time.LocalDateTime;
 import java.util.UUID;
 
 @Getter
@@ -20,7 +20,7 @@ public class TransactionResponse {
     private UUID toAccountId;
     private BigDecimal amount;
     private String description;
-    private Instant timestamp;
+    private LocalDateTime timestamp;
     private String deliveryStatus;
 
 }

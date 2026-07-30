@@ -1,0 +1,190 @@
+{
+  "info": {
+    "name": "Account Service",
+    "_postman_id": "account-service-collection",
+    "description": "Virtual Bank - Account Service (port 8082)",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "baseUrl",    "value": "http://localhost:8082" },
+    { "key": "userId",     "value": "a1b2c3d4-e5f6-7890-1234-567890abcdef" },
+    { "key": "accountId",  "value": "b4c3d2b1-a098-7654-3210-fedcba987654" },
+    { "key": "accountId2", "value": "c5d4e3f2-a1b0-9876-5432-10fedcba9876" }
+  ],
+  "item": [
+    {
+      "name": "Create Account - SAVINGS",
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "url": { "raw": "{{baseUrl}}/accounts", "host": ["{{baseUrl}}"], "path": ["accounts"] },
+        "body": { "mode": "raw", "raw": "{\n  \"userId\": \"{{userId}}\",\n  \"accountType\": \"SAVINGS\",\n  \"initialBalance\": 100.00\n}" }
+      },
+      "event": [{ "listen": "test", "script": { "exec": ["pm.test('201 Created', () => pm.response.to.have.status(201));", "const j = pm.response.json(); pm.test('has accountId', () => pm.expect(j).to.have.property('accountId'));", "if(pm.response.code===201) pm.collectionVariables.set('accountId', j.accountId);"] } }]
+    },
+    {
+      "name": "Create Account - CHECKING",
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "url": { "raw": "{{baseUrl}}/accounts", "host": ["{{baseUrl}}"], "path": ["accounts"] },
+        "body": { "mode": "raw", "raw": "{\n  \"userId\": \"{{userId}}\",\n  \"accountType\": \"CHECKING\",\n  \"initialBalance\": 500.50\n}" }
+      },
+      "event": [{ "listen": "test", "script": { "exec": ["pm.test('201 Created', () => pm.response.to.have.status(201));", "const j = pm.response.json(); if(pm.response.code===201) pm.collectionVariables.set('accountId2', j.accountId);"] } }]
+    },
+    {
+      "name": "Create Account - Missing userId",
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "url": { "raw": "{{baseUrl}}/accounts", "host": ["{{baseUrl}}"], "path": ["accounts"] },
+        "body": { "mode": "raw", "raw": "{\n  \"accountType\": \"SAVINGS\",\n  \"initialBalance\": 100.00\n}" }
+      },
+      "event": [{ "listen": "test", "script": { "exec": ["pm.test('400 Bad Request', () => pm.response.to.have.status(400));"] } }]
+    },
+    {
+      "name": "Create Account - Negative initialBalance",
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "url": { "raw": "{{baseUrl}}/accounts", "host": ["{{baseUrl}}"], "path": ["accounts"] },
+        "body": { "mode": "raw", "raw": "{\n  \"userId\": \"{{userId}}\",\n  \"accountType\": \"SAVINGS\",\n  \"initialBalance\": -50.00\n}" }
+      },
+      "event": [{ "listen": "test", "script": { "exec": ["pm.test('400 Bad Request', () => pm.response.to.have.status(400));"] } }]
+    },
+    {
+      "name": "Create Account - Invalid accountType",
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "url": { "raw": "{{baseUrl}}/accounts", "host": ["{{baseUrl}}"], "path": ["accounts"] },
+        "body": { "mode": "raw", "raw": "{\n  \"userId\": \"{{userId}}\",\n  \"accountType\": \"INVALID_TYPE\",\n  \"initialBalance\": 100.00\n}" }
+      },
+      "event": [{ "listen": "test", "script": { "exec": ["pm.test('4xx error', () => pm.expect(pm.response.code).to.be.within(400, 499));"] } }]
+    },
+    {
+      "name": "Create Account - Missing accountType",
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "url": { "raw": "{{baseUrl}}/accounts", "host": ["{{baseUrl}}"], "path": ["accounts"] },
+        "body": { "mode": "raw", "raw": "{\n  \"userId\": \"{{userId}}\",\n  \"initialBalance\": 100.00\n}" }
+      },
+      "event": [{ "listen": "test", "script": { "exec": ["pm.test('400 Bad Request', () => pm.response.to.have.status(400));"] } }]
+    },
+    {
+      "name": "Get Account",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": { "raw": "{{baseUrl}}/accounts/{{accountId}}", "host": ["{{baseUrl}}"], "path": ["accounts","{{accountId}}"] }
+      },
+      "event": [{ "listen": "test", "script": { "exec": ["pm.test('200 OK', () => pm.response.to.have.status(200));", "const j = pm.response.json(); pm.test('has account fields', () => { pm.expect(j).to.have.property('accountId'); pm.expect(j).to.have.property('balance'); pm.expect(j).to.have.property('accountType'); pm.expect(j).to.have.property('status'); });"] } }]
+    },
+    {
+      "name": "Get Account - Not Found",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": { "raw": "{{baseUrl}}/accounts/00000000-0000-0000-0000-000a00000000", "host": ["{{baseUrl}}"], "path": ["accounts","00000000-0000-0000-0000-000a00000000"] }
+      },
+      "event": [{ "listen": "test", "script": { "exec": ["pm.test('404 Not Found', () => pm.response.to.have.status(404));"] } }]
+    },
+    {
+      "name": "Get Account - Malformed UUID",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": { "raw": "{{baseUrl}}/accounts/not-a-uuid", "host": ["{{baseUrl}}"], "path": ["accounts","not-a-uuid"] }
+      },
+      "event": [{ "listen": "test", "script": { "exec": ["pm.test('4xx error', () => pm.expect(pm.response.code).to.be.within(400, 499));"] } }]
+    },
+    {
+      "name": "Get User Accounts",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": { "raw": "{{baseUrl}}/users/{{userId}}/accounts", "host": ["{{baseUrl}}"], "path": ["users","{{userId}}","accounts"] }
+      },
+      "event": [{ "listen": "test", "script": { "exec": ["pm.test('200 OK', () => pm.response.to.have.status(200));", "pm.test('response is array', () => pm.expect(pm.response.json()).to.be.an('array'));"] } }]
+    },
+    {
+      "name": "Get User Accounts - No accounts",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": { "raw": "{{baseUrl}}/users/00000000-0000-0000-0000-000a00000000/accounts", "host": ["{{baseUrl}}"], "path": ["users","00000000-0000-0000-0000-000a00000000","accounts"] }
+      },
+      "event": [{ "listen": "test", "script": { "exec": ["pm.test('404 Not Found', () => pm.response.to.have.status(404));"] } }]
+    },
+    {
+      "name": "Get User Accounts - Malformed UUID",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": { "raw": "{{baseUrl}}/users/bad-uuid/accounts", "host": ["{{baseUrl}}"], "path": ["users","bad-uuid","accounts"] }
+      },
+      "event": [{ "listen": "test", "script": { "exec": ["pm.test('4xx error', () => pm.expect(pm.response.code).to.be.within(400, 499));"] } }]
+    },
+    {
+      "name": "Transfer",
+      "request": {
+        "method": "PUT",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "url": { "raw": "{{baseUrl}}/accounts/transfer", "host": ["{{baseUrl}}"], "path": ["accounts","transfer"] },
+        "body": { "mode": "raw", "raw": "{\n  \"fromAccountId\": \"{{accountId}}\",\n  \"toAccountId\": \"{{accountId2}}\",\n  \"amount\": 30.00\n}" }
+      },
+      "event": [{ "listen": "test", "script": { "exec": ["pm.test('200 OK', () => pm.response.to.have.status(200));", "pm.test('has message', () => pm.expect(pm.response.json()).to.have.property('message'));"] } }]
+    },
+    {
+      "name": "Transfer - Insufficient funds",
+      "request": {
+        "method": "PUT",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "url": { "raw": "{{baseUrl}}/accounts/transfer", "host": ["{{baseUrl}}"], "path": ["accounts","transfer"] },
+        "body": { "mode": "raw", "raw": "{\n  \"fromAccountId\": \"{{accountId}}\",\n  \"toAccountId\": \"{{accountId2}}\",\n  \"amount\": 9999999.00\n}" }
+      },
+      "event": [{ "listen": "test", "script": { "exec": ["pm.test('400 Bad Request', () => pm.response.to.have.status(400));"] } }]
+    },
+    {
+      "name": "Transfer - Invalid fromAccountId",
+      "request": {
+        "method": "PUT",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "url": { "raw": "{{baseUrl}}/accounts/transfer", "host": ["{{baseUrl}}"], "path": ["accounts","transfer"] },
+        "body": { "mode": "raw", "raw": "{\n  \"fromAccountId\": \"00000000-0000-0000-0000-000a00000000\",\n  \"toAccountId\": \"{{accountId2}}\",\n  \"amount\": 10.00\n}" }
+      },
+      "event": [{ "listen": "test", "script": { "exec": ["pm.test('400 Bad Request', () => pm.response.to.have.status(400));"] } }]
+    },
+    {
+      "name": "Transfer - Negative amount",
+      "request": {
+        "method": "PUT",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "url": { "raw": "{{baseUrl}}/accounts/transfer", "host": ["{{baseUrl}}"], "path": ["accounts","transfer"] },
+        "body": { "mode": "raw", "raw": "{\n  \"fromAccountId\": \"{{accountId}}\",\n  \"toAccountId\": \"{{accountId2}}\",\n  \"amount\": -50.00\n}" }
+      },
+      "event": [{ "listen": "test", "script": { "exec": ["pm.test('400 Bad Request', () => pm.response.to.have.status(400));"] } }]
+    },
+    {
+      "name": "Transfer - Missing fromAccountId",
+      "request": {
+        "method": "PUT",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "url": { "raw": "{{baseUrl}}/accounts/transfer", "host": ["{{baseUrl}}"], "path": ["accounts","transfer"] },
+        "body": { "mode": "raw", "raw": "{\n  \"toAccountId\": \"{{accountId2}}\",\n  \"amount\": 10.00\n}" }
+      },
+      "event": [{ "listen": "test", "script": { "exec": ["pm.test('400 Bad Request', () => pm.response.to.have.status(400));"] } }]
+    },
+    {
+      "name": "Transfer - Same account transfer",
+      "request": {
+        "method": "PUT",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "url": { "raw": "{{baseUrl}}/accounts/transfer", "host": ["{{baseUrl}}"], "path": ["accounts","transfer"] },
+        "body": { "mode": "raw", "raw": "{\n  \"fromAccountId\": \"{{accountId}}\",\n  \"toAccountId\": \"{{accountId}}\",\n  \"amount\": 10.00\n}" }
+      },
+      "event": [{ "listen": "test", "script": { "exec": ["pm.test('4xx error', () => pm.expect(pm.response.code).to.be.within(400, 499));"] } }]
+    }
+  ]
+}

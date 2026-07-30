@@ -40,6 +40,8 @@ public class TransactionClient {
 
                 .bodyToFlux(TransactionResponse.class)
                 .collectList()
+                .onErrorResume(org.springframework.web.reactive.function.client.WebClientResponseException.NotFound.class,
+                        e -> Mono.just(java.util.Collections.emptyList()))
 
                 .timeout(Duration.ofSeconds(5));
     }

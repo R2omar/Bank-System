@@ -1,0 +1,41 @@
+{
+  "info": {
+    "name": "BFF Service",
+    "_postman_id": "bff-service-collection",
+    "description": "Virtual Bank - BFF Service (port 8084). Aggregates User, Account, and Transaction services.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "baseUrl", "value": "http://localhost:8084" },
+    { "key": "userId",  "value": "a1b2c3d4-e5f6-7890-1234-567890abcdef" }
+  ],
+  "item": [
+    {
+      "name": "Dashboard",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": { "raw": "{{baseUrl}}/bff/dashboard/{{userId}}", "host": ["{{baseUrl}}"], "path": ["bff","dashboard","{{userId}}"] }
+      },
+      "event": [{ "listen": "test", "script": { "exec": ["pm.test('200 OK', () => pm.response.to.have.status(200));", "const j = pm.response.json();", "pm.test('has userId', () => pm.expect(j).to.have.property('userId'));", "pm.test('has username', () => pm.expect(j).to.have.property('username'));", "pm.test('has accounts array', () => pm.expect(j.accounts).to.be.an('array'));", "pm.test('each account has transactions', () => { j.accounts.forEach(a => pm.expect(a).to.have.property('transactions')); });"] } }]
+    },
+    {
+      "name": "Dashboard - User not found",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": { "raw": "{{baseUrl}}/bff/dashboard/00000000-0000-0000-0000-000a00000000", "host": ["{{baseUrl}}"], "path": ["bff","dashboard","00000000-0000-0000-0000-000a00000000"] }
+      },
+      "event": [{ "listen": "test", "script": { "exec": ["pm.test('404 Not Found', () => pm.response.to.have.status(404));"] } }]
+    },
+    {
+      "name": "Dashboard - Malformed UUID",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": { "raw": "{{baseUrl}}/bff/dashboard/not-a-valid-uuid", "host": ["{{baseUrl}}"], "path": ["bff","dashboard","not-a-valid-uuid"] }
+      },
+      "event": [{ "listen": "test", "script": { "exec": ["pm.test('4xx error', () => pm.expect(pm.response.code).to.be.within(400, 499));"] } }]
+    }
+  ]
+}
