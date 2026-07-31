@@ -1,5 +1,6 @@
 package com.bank.userservice.service;
 
+import com.bank.userservice.security.JwtUtil;
 import com.bank.userservice.dto.*;
 import com.bank.userservice.entity.User;
 import com.bank.userservice.exception.InvalidCredentialsException;
@@ -19,14 +20,15 @@ public class UserService {
 
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
+    private final JwtUtil jwtUtil;
 
     @Transactional
     public RegisterResponse register(RegisterRequest request) {
         if (userRepository.existsByUsername(request.getUsername())) {
-            throw new UserAlreadyExistsException("Username already exists.");
+            throw new UserAlreadyExistsException("Username or email already exists.");
         }
         if (userRepository.existsByEmail(request.getEmail())) {
-            throw new UserAlreadyExistsException("email already exists.");
+            throw new UserAlreadyExistsException("Username or email already exists.");
         }
 
         User user = User.builder()
@@ -54,9 +56,12 @@ public class UserService {
             throw new InvalidCredentialsException("Invalid username or password.");
         }
 
+        String token = jwtUtil.generateToken(user.getId(), user.getUsername());
+
         return LoginResponse.builder()
                 .userId(user.getId())
                 .username(user.getUsername())
+                .token(token)
                 .build();
     }
 
