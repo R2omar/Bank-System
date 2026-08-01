@@ -29,7 +29,7 @@ public class JwtAuthenticationManager implements ReactiveAuthenticationManager {
             );
             return Mono.just(auth);
         }
- else {
+        else {
             return Mono.empty();
         }
     }

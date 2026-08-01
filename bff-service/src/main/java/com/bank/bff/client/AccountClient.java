@@ -2,7 +2,6 @@ package com.bank.bff.client;
 
 import com.bank.bff.dto.AccountResponse;
 import com.bank.bff.exception.DownstreamServiceException;
-import com.bank.bff.exception.ResourceNotFoundException;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.stereotype.Service;
@@ -34,12 +33,6 @@ public class AccountClient {
                 .get()
                 .uri("/users/{userId}/accounts", userId)
                 .retrieve()
-
-//                .onStatus(
-//                        status -> status.value() == 404,
-//                        response -> Mono.error(
-//                                new ResourceNotFoundException("No accounts found"))
-//                )
 
                 .onStatus(
                         HttpStatusCode::is5xxServerError,
