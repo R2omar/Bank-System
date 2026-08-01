@@ -6,10 +6,12 @@ import com.bank.bff.exception.ResourceNotFoundException;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.stereotype.Service;
+import org.springframework.web.reactive.function.client.WebClientResponseException;
 import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Mono;
 
 import java.time.Duration;
+import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
 
@@ -33,11 +35,11 @@ public class AccountClient {
                 .uri("/users/{userId}/accounts", userId)
                 .retrieve()
 
-                .onStatus(
-                        status -> status.value() == 404,
-                        response -> Mono.error(
-                                new ResourceNotFoundException("No accounts found"))
-                )
+//                .onStatus(
+//                        status -> status.value() == 404,
+//                        response -> Mono.error(
+//                                new ResourceNotFoundException("No accounts found"))
+//                )
 
                 .onStatus(
                         HttpStatusCode::is5xxServerError,
@@ -47,6 +49,12 @@ public class AccountClient {
 
                 .bodyToFlux(AccountResponse.class)
                 .collectList()
+
+
+                .onErrorResume(
+                        WebClientResponseException.NotFound.class,
+                        ex -> Mono.just(Collections.emptyList())
+                )
 
                 .timeout(Duration.ofSeconds(5));
     }
